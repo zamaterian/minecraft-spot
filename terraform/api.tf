@@ -19,7 +19,7 @@ module "start-cors" {
   rest_api_id   = "${aws_api_gateway_rest_api.api.id}"
   resource_id   = "${aws_api_gateway_resource.start.id}"
   resource_path = "${aws_api_gateway_resource.start.path}"
-  cors_origins  = "${concat(var.extra_origins, list("https://${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}"))}"
+  #cors_origins  = "${concat(var.extra_origins, list("https://${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}"))}"
 }
 
 resource "aws_api_gateway_method" "start_get" {
@@ -64,7 +64,7 @@ resource "aws_lambda_function" "start" {
   environment {
     variables = {
       GROUP_NAME = "${aws_autoscaling_group.minecraft.name}"
-      CORS_ORIGINS = "${join(",", concat(var.extra_origins, list("https://${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}")))}"
+  #    CORS_ORIGINS = "${join(",", concat(var.extra_origins, list("https://${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}")))}"
     }
   }
 }
@@ -84,7 +84,7 @@ module "stop-cors" {
   rest_api_id   = "${aws_api_gateway_rest_api.api.id}"
   resource_id   = "${aws_api_gateway_resource.stop.id}"
   resource_path = "${aws_api_gateway_resource.stop.path}"
-  cors_origins  = "${concat(var.extra_origins, list("https://${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}"))}"
+ # cors_origins  = "${concat(var.extra_origins, list("https://${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}"))}"
 }
 
 resource "aws_api_gateway_method" "stop_get" {
@@ -123,7 +123,7 @@ resource "aws_lambda_function" "stop" {
   environment {
     variables = {
       GROUP_NAME = "${aws_autoscaling_group.minecraft.name}"
-      CORS_ORIGINS = "${join(",", concat(var.extra_origins, list("https://${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}")))}"
+#      CORS_ORIGINS = "${join(",", concat(var.extra_origins, list("https://${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}")))}"
     }
   }
 }
@@ -143,7 +143,7 @@ module "status-cors" {
   rest_api_id   = "${aws_api_gateway_rest_api.api.id}"
   resource_id   = "${aws_api_gateway_resource.status.id}"
   resource_path = "${aws_api_gateway_resource.status.path}"
-  cors_origins  = "${concat(var.extra_origins, list("https://${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}"))}"
+#  cors_origins  = "${concat(var.extra_origins, list("https://${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}"))}"
 }
 
 resource "aws_api_gateway_method" "status_get" {
@@ -182,7 +182,7 @@ resource "aws_lambda_function" "status" {
   environment {
     variables = {
       GROUP_NAME = "${aws_autoscaling_group.minecraft.name}"
-      CORS_ORIGINS = "${join(",", concat(var.extra_origins, list("https://${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}")))}"
+  #    CORS_ORIGINS = "${join(",", concat(var.extra_origins, list("https://${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}")))}"
     }
   }
 }
@@ -242,14 +242,14 @@ resource "aws_iam_role_policy" "lambda" {
     }
     EOF
 }
-
+/*
 data "aws_route53_zone" "zone" {
   zone_id = "${var.hosted_zone_id}"
 }
 
 resource "aws_api_gateway_domain_name" "api" {
-  domain_name = "${var.api_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}"
-  certificate_arn = "${var.domain_ssl_certificate_arn}"
+ # domain_name = "${var.api_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}"
+ # certificate_arn = "${var.domain_ssl_certificate_arn}"
 }
 
 resource "aws_route53_record" "api" {
@@ -263,14 +263,13 @@ resource "aws_route53_record" "api" {
     evaluate_target_health = false
   }
 }
-
 resource "aws_api_gateway_base_path_mapping" "minecraft" {
   api_id      = "${aws_api_gateway_rest_api.api.id}"
   stage_name  = "${aws_api_gateway_deployment.api.stage_name}"
-  domain_name = "${aws_api_gateway_domain_name.api.domain_name}"
+ # domain_name = "${aws_api_gateway_domain_name.api.domain_name}"
   base_path = "minecraft"
 }
-
+*/
 resource "aws_api_gateway_deployment" "api" {
   depends_on = [
     "aws_api_gateway_method.start_get",
@@ -280,11 +279,11 @@ resource "aws_api_gateway_deployment" "api" {
   rest_api_id = "${aws_api_gateway_rest_api.api.id}"
   stage_name  = "prod"
 
-  variables {
+  variables = {
     version = "0.5"
   }
 
-  lifecycle {
-    create_before_destroy = true
-  }
+#  lifecycle {
+#    create_before_destroy = true
+#  }
 }

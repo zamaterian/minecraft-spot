@@ -55,7 +55,7 @@ resource "aws_lambda_function" "authorizer" {
   role             = "${aws_iam_role.authorizer-lambda.arn}"
   handler          = "index.handler"
   runtime          = "nodejs8.10"
-  source_code_hash = "${base64sha256(file("${path.module}/custom_authorizer/custom-authorizer.zip"))}"
+  source_code_hash = "${filesha256("${path.module}/custom_authorizer/custom-authorizer.zip")}"
   environment {
     variables = {
       TOKEN_ISSUER = "${var.auth_token_issuer}"

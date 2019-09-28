@@ -37,7 +37,7 @@ resource "aws_autoscaling_group" "minecraft" {
   health_check_grace_period = 300
   health_check_type         = "EC2"
 
-  vpc_zone_identifier = ["${var.public_subnets}"]
+  vpc_zone_identifier = "${var.public_subnets}"
 
   tags = [
     {
@@ -103,14 +103,6 @@ resource "aws_iam_role_policy" "minecraft" {
             "${aws_s3_bucket.minecraft.arn}",
             "${aws_s3_bucket.minecraft.arn}/*"
           ]
-        },
-        {
-          "Action": [
-            "route53:ChangeResourceRecordSets",
-            "route53:ListResourceRecordSets"
-          ],
-          "Effect": "Allow",
-          "Resource": "arn:aws:route53:::hostedzone/${data.aws_route53_zone.zone.id}"
         },
         {
           "Action": [

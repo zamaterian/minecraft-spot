@@ -1,4 +1,4 @@
-resource "aws_s3_bucket" "webapp" {
+/*resource "aws_s3_bucket" "webapp" {
   bucket = "${var.webapp_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")}"
   policy = "${data.aws_iam_policy_document.webapp.json}"
 }
@@ -59,7 +59,7 @@ resource "aws_cloudfront_distribution" "webapp" {
   restrictions {
     geo_restriction {
       restriction_type = "whitelist"
-      locations        = ["${var.cloudfront_location_whitelist}"]
+      locations        = "${var.cloudfront_location_whitelist}"
     }
   }
 
@@ -123,3 +123,4 @@ resource "aws_route53_record" "webapp" {
 output "webapp-distribution-id" {
   value = "${aws_cloudfront_distribution.webapp.id}"
 }
+*/

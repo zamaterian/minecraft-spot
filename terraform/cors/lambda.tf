@@ -21,7 +21,7 @@ resource "aws_lambda_function" "lambda" {
   role             = "${aws_iam_role.lambda.arn}"
   handler          = "lambda.cors"
   runtime          = "python3.6"
-  source_code_hash = "${base64sha256(file("${data.archive_file.lambda.output_path}"))}"
+  source_code_hash = "${filesha256("${data.archive_file.lambda.output_path}")}"
   environment {
     variables = {
       CORS_HEADERS = "${join(",", var.cors_headers)}"

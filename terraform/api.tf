@@ -60,7 +60,7 @@ resource "aws_lambda_function" "start" {
   role             = "${aws_iam_role.lambda.arn}"
   handler          = "lambda.start"
   runtime          = "python3.6"
-  source_code_hash = "${base64sha256(file("${data.archive_file.lambda.output_path}"))}"
+  source_code_hash = "${filesha256("${data.archive_file.lambda.output_path}")}"
   environment {
     variables = {
       GROUP_NAME = "${aws_autoscaling_group.minecraft.name}"
@@ -119,7 +119,7 @@ resource "aws_lambda_function" "stop" {
   role             = "${aws_iam_role.lambda.arn}"
   handler          = "lambda.stop"
   runtime          = "python3.6"
-  source_code_hash = "${base64sha256(file("${data.archive_file.lambda.output_path}"))}"
+  source_code_hash = "${filesha256("${data.archive_file.lambda.output_path}")}"
   environment {
     variables = {
       GROUP_NAME = "${aws_autoscaling_group.minecraft.name}"
@@ -178,7 +178,7 @@ resource "aws_lambda_function" "status" {
   role             = "${aws_iam_role.lambda.arn}"
   handler          = "lambda.status"
   runtime          = "python3.6"
-  source_code_hash = "${base64sha256(file("${data.archive_file.lambda.output_path}"))}"
+  source_code_hash = "${filesha256("${data.archive_file.lambda.output_path}")}"
   environment {
     variables = {
       GROUP_NAME = "${aws_autoscaling_group.minecraft.name}"

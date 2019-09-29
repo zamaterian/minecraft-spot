@@ -1,5 +1,5 @@
 data "template_cloudinit_config" "config" {
-  gzip = true
+  gzip = false
   base64_encode = true
 
   part {
@@ -25,6 +25,7 @@ data "template_cloudinit_config" "config" {
 data "template_file" "minecraft" {
   template = <<-EOF
     #cloud-config
+    output: {all: ">> /var/log/cloud-init-output.log"}
     packages:
       - python3-pip
     runcmd:
@@ -85,6 +86,7 @@ data "template_file" "minecraft" {
 data "template_file" "users" {
   template = <<-EOF
     #cloud-config
+    output: {all: ">> /var/log/cloud-init-output.log"}
     users:
       - default
       - name: ${var.username}
@@ -101,6 +103,7 @@ data "template_file" "users" {
 data "template_file" "docker" {
   template = <<-EOF
     #cloud-config
+    output: {all: ">> /var/log/cloud-init-output.log"}
     packages:
       - apt-transport-https
       - ca-certificates

@@ -60,6 +60,9 @@ data "template_file" "minecraft" {
                 MAX_RAM: "3G"
                 VERSION: "1.14.4"
                 TYPE: "PAPER"
+                WHITELIST: "${var.minecraft_whitelist}"
+                OPS: "${var.minecraft_ops}"
+                ENABLE_RCON: "true"
             check_termination:
               container_name: check_termination
               image: ${var.tools_docker_image_id}

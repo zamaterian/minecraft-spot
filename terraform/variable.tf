@@ -20,6 +20,15 @@ variable "api_subdomain" {
   default = "api"
 }
 
+variable "minecraft_ops" {
+  description = "Users that can be ops"
+  default = ""
+}
+
+variable "minecraft_whitelist" {
+  description = "Users that can connect "
+  default = ""
+}
 variable "minecraft_subdomain" {
   description = "the subdomain name to run the minecraft instance at"
   default = "minecraft"

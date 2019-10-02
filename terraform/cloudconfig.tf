@@ -1,3 +1,6 @@
+locals {
+   minecraft_image = "304386689548.dkr.ecr.eu-west-1.amazonaws.com/minecraft"
+}
 data "template_cloudinit_config" "config" {
   gzip = false
   base64_encode = true
@@ -21,6 +24,7 @@ data "template_cloudinit_config" "config" {
   }
 }
 
+#              image: ${var.minecraft_docker_image_id}
 #      - docker run --name set_route -e AWS_DEFAULT_REGION=${var.aws_region} -e FQDN=${var.minecraft_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")} -e ZONE_ID=${var.hosted_zone_id} ${var.tools_docker_image_id} set_route.py
 data "template_file" "minecraft" {
   template = <<-EOF
@@ -34,6 +38,7 @@ data "template_file" "minecraft" {
       - aws configure set region ${var.aws_region}
       - docker run --name restore_backup -e AWS_DEFAULT_REGION=${var.aws_region} -e S3_BUCKET=${var.bucket_name} -v /srv/minecraft-spot/data:/data ${var.tools_docker_image_id} restore_backup.py
       - chmod -R a+rwX /srv/minecraft-spot/data
+      - $(aws ecr get-login --no-include-email --registry-ids 304386689548 --region eu-west-1)
       - docker-compose -f /srv/minecraft-spot/docker-compose.yaml up -d
     write_files:
       - path: /srv/minecraft-spot/docker-compose.yaml
@@ -44,7 +49,7 @@ data "template_file" "minecraft" {
           services:
             minecraft:
               container_name: minecraft
-              image: ${var.minecraft_docker_image_id}
+              image: ${local.minecraft_image}
               restart: on-failure
               ports:
                 - 25565:25565
@@ -52,9 +57,9 @@ data "template_file" "minecraft" {
                 - /srv/minecraft-spot/data:/data
               environment:
                 EULA: "TRUE"
-                MAX_RAM: "7G"
-                TYPE: "FTB"
-                FTB_SERVER_MOD: "${var.ftb_modpack_version}"
+                MAX_RAM: "3G"
+                VERSION: "1.14.4"
+                TYPE: "PAPER"
             check_termination:
               container_name: check_termination
               image: ${var.tools_docker_image_id}

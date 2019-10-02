@@ -118,6 +118,20 @@ resource "aws_iam_role_policy" "minecraft" {
           ],
           "Effect": "Allow",
           "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecr:GetAuthorizationToken",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:GetRepositoryPolicy",
+                "ecr:DescribeRepositories",
+                "ecr:ListImages",
+                "ecr:DescribeImages",
+                "ecr:BatchGetImage"
+            ],
+            "Resource": "*"
         }
       ]
     }

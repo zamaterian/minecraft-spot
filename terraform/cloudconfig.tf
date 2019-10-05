@@ -1,6 +1,8 @@
 locals {
-   minecraft_image = "304386689548.dkr.ecr.eu-west-1.amazonaws.com/minecraft"
+   minecraft_image = "${var.minecraft_docker_image_id}"
 }
+data "aws_caller_identity" "current_" {}
+
 data "template_cloudinit_config" "config" {
   gzip = false
   base64_encode = true
@@ -25,6 +27,8 @@ data "template_cloudinit_config" "config" {
 }
 
 #              image: ${var.minecraft_docker_image_id}
+
+#      - docker run --name restore_backup -e AWS_DEFAULT_REGION=${var.aws_region} -e S3_BUCKET=${var.bucket_name} -v /srv/minecraft-spot/data:/data ${var.tools_docker_image_id} restore_backup.py
 #      - docker run --name set_route -e AWS_DEFAULT_REGION=${var.aws_region} -e FQDN=${var.minecraft_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")} -e ZONE_ID=${var.hosted_zone_id} ${var.tools_docker_image_id} set_route.py
 data "template_file" "minecraft" {
   template = <<-EOF
@@ -33,12 +37,10 @@ data "template_file" "minecraft" {
     packages:
       - python3-pip
     runcmd:
-      - mkdir -p /srv/minecraft-spot/data
-      - pip3 install awscli
-      - aws configure set region ${var.aws_region}
-      - docker run --name restore_backup -e AWS_DEFAULT_REGION=${var.aws_region} -e S3_BUCKET=${var.bucket_name} -v /srv/minecraft-spot/data:/data ${var.tools_docker_image_id} restore_backup.py
+      - mkdir -p /srv/minecraft-spot/
+      - ln -s /var/mqm /srv/minecraft-spot/data
       - chmod -R a+rwX /srv/minecraft-spot/data
-      - $(aws ecr get-login --no-include-email --registry-ids 304386689548 --region eu-west-1)
+      - $(aws ecr get-login --no-include-email --registry-ids ${data.aws_caller_identity.current_.account_id} --region eu-west-1)
       - docker-compose -f /srv/minecraft-spot/docker-compose.yaml up -d
     write_files:
       - path: /srv/minecraft-spot/docker-compose.yaml
@@ -116,12 +118,21 @@ data "template_file" "docker" {
       - apt-transport-https
       - ca-certificates
       - curl
+      - python3-pip
     runcmd:
       - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
       - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
       - apt-get update -y
       - apt-get install -y docker-ce
+      - pip3 install awscli
+      - aws configure set region ${var.aws_region}
+      - aws ec2 attach-volume --device /dev/xvdf --instance-id $(curl http://169.254.169.254/latest/meta-data/instance-id) --volume-id  "${var.volume_id}"
+      - mkdir -p /var/mqm
+      - while [ ! -b $(readlink -f /dev/nvme1n1) ]; do echo "waiting for device /dev/nvme1n1"; sleep 5 ; done
+      - blkid $(readlink -f /dev/nvme1n1) || mkfs -t ext4 $(readlink -f /dev/nvme1n1)
+      - grep -q "^$(readlink -f /dev/nvme1n1) /var/mqm " /proc/mounts || mount /var/mqm
       - curl -L https://github.com/docker/compose/releases/download/1.17.0/docker-compose-linux-x86_64 > /usr/bin/docker-compose
+      - echo "attach esb volmune"
       - chmod +x /usr/bin/docker-compose
     EOF
 }

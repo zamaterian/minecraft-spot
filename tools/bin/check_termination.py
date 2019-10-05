@@ -28,7 +28,7 @@ def get_automatic_termination_time():
     return response.text
 
 def stop_and_backup_minecraft():
-    spot_tools.backup.local_backup_and_save_to_s3()
+    # spot_tools.backup.local_backup_and_save_to_s3()
 
     LOGGER.info('stopping minecraft')
     minecraft = spot_tools.minecraft.get_minecraft()
@@ -36,7 +36,7 @@ def stop_and_backup_minecraft():
     if minecraft.status != "exited":
         minecraft.exec_run('rcon-cli stop')
 
-    spot_tools.backup.others_backup_if_needed()
+    # spot_tools.backup.others_backup_if_needed()
 
 def run():
     terminate = False
@@ -58,8 +58,8 @@ def run():
             InstanceId=instance_details['InstanceId'],
         )
 
-    if not automatic_termination_time and not manual_termination:
-        spot_tools.backup.backup_if_needed()
+    #if not automatic_termination_time and not manual_termination:
+    #    spot_tools.backup.backup_if_needed()
 
     return terminate
 

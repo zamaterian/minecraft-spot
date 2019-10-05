@@ -122,6 +122,8 @@ resource "aws_iam_role_policy" "minecraft" {
         {
             "Effect": "Allow",
             "Action": [
+                "ec2:AttachVolume",
+                "ec2:DetachVolume",
                 "ecr:GetAuthorizationToken",
                 "ecr:BatchCheckLayerAvailability",
                 "ecr:GetDownloadUrlForLayer",

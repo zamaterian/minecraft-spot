@@ -40,7 +40,15 @@ def get_players():
     if result[0] != 0:
         return
     players_raw = result[1].decode('utf8')
-    players = int(PLAYERS_RE.match(players_raw).group('players'))
+
+    LOGGER.debug(players_raw)
+    matches = PLAYERS_RE.match(players_raw)
+    if matches is None:
+       LOGGER.info("No match found")
+       LOGGER.debug(result)
+       players = None
+    else
+       players = int(matches.group('players'))
     return players
 
 def main():

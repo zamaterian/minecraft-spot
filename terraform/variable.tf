@@ -19,6 +19,9 @@ variable "api_subdomain" {
   description = "the subdomain name to run the api at"
   default = "api"
 }
+variable "minecraft_type" {
+    description = "minecraft server type see minecraft server image "
+}
 
 variable "minecraft_ops" {
   description = "Users that can be ops"

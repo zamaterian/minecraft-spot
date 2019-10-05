@@ -1,5 +1,6 @@
 locals {
    minecraft_image = "${var.minecraft_docker_image_id}"
+   minecraft_data  = "data-${var.minecraft_type}"
 }
 data "aws_caller_identity" "current_" {}
 
@@ -38,8 +39,8 @@ data "template_file" "minecraft" {
       - python3-pip
     runcmd:
       - mkdir -p /srv/minecraft-spot/
-      - ln -s /var/mqm /srv/minecraft-spot/data
-      - chmod -R a+rwX /srv/minecraft-spot/data
+      - ln -s /var/mqm /srv/minecraft-spot/${local.minecraft_data}
+      - chmod -R a+rwX /srv/minecraft-spot/${local.minecraft_data}
       - $(aws ecr get-login --no-include-email --registry-ids ${data.aws_caller_identity.current_.account_id} --region eu-west-1)
       - docker-compose -f /srv/minecraft-spot/docker-compose.yaml up -d
     write_files:
@@ -56,12 +57,12 @@ data "template_file" "minecraft" {
               ports:
                 - 25565:25565
               volumes:
-                - /srv/minecraft-spot/data:/data
+                - /srv/minecraft-spot/${local.minecraft_data}:/data
               environment:
                 EULA: "TRUE"
                 MAX_RAM: "3G"
                 VERSION: "1.14.4"
-                TYPE: "PAPER"
+                TYPE: "${var.minecraft_type}"
                 WHITELIST: "${var.minecraft_whitelist}"
                 OPS: "${var.minecraft_ops}"
                 ENABLE_RCON: "true"
@@ -71,7 +72,7 @@ data "template_file" "minecraft" {
               command: check_termination.py
               restart: on-failure
               volumes:
-                - /srv/minecraft-spot/data:/data
+                - /srv/minecraft-spot/${local.minecraft_data}:/data
                 - /var/run/docker.sock:/var/run/docker.sock
               environment:
                 AWS_DEFAULT_REGION: ${var.aws_region}

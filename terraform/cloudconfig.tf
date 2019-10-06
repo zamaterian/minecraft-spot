@@ -1,6 +1,7 @@
 locals {
    minecraft_image = "${var.minecraft_docker_image_id}"
    minecraft_data  = "data-${var.minecraft_type}"
+   device =          "/dev/nvme1n1"
 }
 data "aws_caller_identity" "current_" {}
 
@@ -38,9 +39,9 @@ data "template_file" "minecraft" {
     packages:
       - python3-pip
     runcmd:
-      - mkdir -p /srv/minecraft-spot/
-      - ln -s /var/mqm /srv/minecraft-spot/${local.minecraft_data}
-      - chmod -R a+rwX /srv/minecraft-spot/${local.minecraft_data}
+      - mkdir -p /srv/minecraft-spot
+      - ln -s /var/mqm/${local.minecraft_data} /srv/minecraft-spot/data
+      - chmod -R a+rwX /srv/minecraft-spot/data
       - $(aws ecr get-login --no-include-email --registry-ids ${data.aws_caller_identity.current_.account_id} --region eu-west-1)
       - docker-compose -f /srv/minecraft-spot/docker-compose.yaml up -d
     write_files:
@@ -57,7 +58,7 @@ data "template_file" "minecraft" {
               ports:
                 - 25565:25565
               volumes:
-                - /srv/minecraft-spot/${local.minecraft_data}:/data
+                - /srv/minecraft-spot/data:/data
               environment:
                 EULA: "TRUE"
                 MAX_RAM: "3G"
@@ -72,7 +73,7 @@ data "template_file" "minecraft" {
               command: check_termination.py
               restart: on-failure
               volumes:
-                - /srv/minecraft-spot/${local.minecraft_data}:/data
+                - /srv/minecraft-spot/data:/data
                 - /var/run/docker.sock:/var/run/docker.sock
               environment:
                 AWS_DEFAULT_REGION: ${var.aws_region}
@@ -128,10 +129,11 @@ data "template_file" "docker" {
       - pip3 install awscli
       - aws configure set region ${var.aws_region}
       - aws ec2 attach-volume --device /dev/xvdf --instance-id $(curl http://169.254.169.254/latest/meta-data/instance-id) --volume-id  "${var.volume_id}"
-      - mkdir -p /var/mqm
-      - while [ ! -b $(readlink -f /dev/nvme1n1) ]; do echo "waiting for device /dev/nvme1n1"; sleep 5 ; done
-      - blkid $(readlink -f /dev/nvme1n1) || mkfs -t ext4 $(readlink -f /dev/nvme1n1)
-      - grep -q "^$(readlink -f /dev/nvme1n1) /var/mqm " /proc/mounts || mount /var/mqm
+      - mkdir -p /var/mqm/
+      - while [ ! -b $(readlink -f ${local.device} ) ]; do echo "waiting for device ${local.device}"; sleep 5 ; done
+      - blkid $(readlink -f ${local.device}) || mkfs -t ext4 $(readlink -f ${local.device})
+      - grep -q "^$(readlink -f ${local.device}) /var/mqm " /proc/mounts || mount ${local.device} /var/mqm
+      - mkdir -p /var/mqm/${local.minecraft_data}
       - curl -L https://github.com/docker/compose/releases/download/1.17.0/docker-compose-linux-x86_64 > /usr/bin/docker-compose
       - echo "attach esb volmune"
       - chmod +x /usr/bin/docker-compose

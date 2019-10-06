@@ -30,7 +30,8 @@ def mark_instance_for_removal():
         HonorCooldown=False,
     )
 
-PLAYERS_RE = re.compile(r'There are (?P<players>\d*)/\d* players online:')
+#PLAYERS_RE = re.compile(r'There are (?P<players>\d*)/\d* players online:')
+PLAYERS_RE = re.compile(r'There\sare\s(?P<players>\d*)')
 def get_players():
     minecraft = spot_tools.minecraft.get_minecraft()
     if minecraft.status == "exited":
@@ -47,7 +48,7 @@ def get_players():
        LOGGER.info("No match found")
        LOGGER.debug(result)
        players = None
-    else
+    else:
        players = int(matches.group('players'))
     return players
 

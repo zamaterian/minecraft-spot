@@ -34,6 +34,7 @@ def stop_and_backup_minecraft():
     minecraft = spot_tools.minecraft.get_minecraft()
 
     if minecraft.status != "exited":
+        minecraft.exec_run('rcon-cli save-all flush')
         minecraft.exec_run('rcon-cli stop')
 
     # spot_tools.backup.others_backup_if_needed()

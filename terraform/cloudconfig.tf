@@ -28,7 +28,6 @@ data "template_cloudinit_config" "config" {
   }
 }
 
-#              image: ${var.minecraft_docker_image_id}
 
 #      - docker run --name restore_backup -e AWS_DEFAULT_REGION=${var.aws_region} -e S3_BUCKET=${var.bucket_name} -v /srv/minecraft-spot/data:/data ${var.tools_docker_image_id} restore_backup.py
 #      - docker run --name set_route -e AWS_DEFAULT_REGION=${var.aws_region} -e FQDN=${var.minecraft_subdomain}.${replace(data.aws_route53_zone.zone.name, "/[.]$/", "")} -e ZONE_ID=${var.hosted_zone_id} ${var.tools_docker_image_id} set_route.py
@@ -43,8 +42,35 @@ data "template_file" "minecraft" {
       - ln -s /var/mqm/${local.minecraft_data} /srv/minecraft-spot/data
       - chmod -R a+rwX /srv/minecraft-spot/data
       - $(aws ecr get-login --no-include-email --registry-ids ${data.aws_caller_identity.current_.account_id} --region eu-west-1)
-      - docker-compose -f /srv/minecraft-spot/docker-compose.yaml up -d
+      - systemctl daemon-reload
+      - systemctl enable minecraft-docker-compose
+      - systemctl start minecraft-docker-compose
     write_files:
+      - path: /etc/systemd/system/minecraft-docker-compose.service
+        permissions: "0644"
+        owner: root
+        content: |
+          [Unit]
+          Description=Docker Compose minecraft container starter
+          After=docker.service network-online.target
+          Requires=docker.service network-online.target
+
+          [Service]
+          WorkingDirectory=/srv/minecraft-spot/
+          Type=oneshot
+          RemainAfterExit=yes
+
+          ExecStartPre=-/usr/local/bin/docker-compose pull --quiet
+          ExecStart=/usr/local/bin/docker-compose up -d
+
+          ExecStop=/usr/local/bin/docker-compose down
+
+          ExecReload=/usr/local/bin/docker-compose pull --quiet
+          ExecReload=/usr/local/bin/docker-compose up -d
+
+          [Install]
+          WantedBy=multi-user.target
+
       - path: /srv/minecraft-spot/docker-compose.yaml
         permissions: "0644"
         owner: root
